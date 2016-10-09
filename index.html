@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="http://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+	<script src="page.js"></script>
+</head>
+<body>
+	<nav class="page text-center"></nav>
+	<script>
+		var page = new Page(".page",{
+			pageTot: 10,
+			curPage: 2,
+			pageBtnsNum: 5,
+			showJumpBtn: true,
+			alias: {
+				firstPage: "首页",
+				lastPage: "尾页",
+				prevPage: "前一页",
+				nextPage: "后一页",
+				jumpBtn: "go"
+			},
+			pageListener: function(page){
+				console.log(page)
+				console.log(this)
+			}
+		})
+	</script>
+</body>
+</html>
