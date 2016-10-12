@@ -13,18 +13,24 @@
 		var page = new Page(".page",{
 			pageTot: 10,
 			curPage: 2,
-			pageBtnsNum: 5,
+			pageBtnsNum: 7,
 			showJumpBtn: true,
 			alias: {
 				firstPage: "首页",
 				lastPage: "尾页",
 				prevPage: "前一页",
 				nextPage: "后一页",
-				jumpBtn: "go"
+				jumpBtn: "跳转"
 			},
 			pageListener: function(page){
 				console.log(page)
 				console.log(this)
+			},
+			onJump: function(pageInput){
+				var page = parseInt(pageInput);
+				if(page < 5){
+					return false;
+				}
 			}
 		})
 	</script>

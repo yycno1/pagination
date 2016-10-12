@@ -4,6 +4,8 @@
 	 *options.pageTot {Int}总页数
 	 *options.curpage {Int}当前页
 	 *options.pageListener {Function} 页码点击事件监听 参数(pageNum) 上下文(page实例)
+	 *options.onJump {Function} 跳转点击事件监听 参数(用户输入的页码值) 上下文(page实例)
+	    在跳转页面之前触发，若要阻止页面跳转，须显式地返回false
 	 *options.showPageDetail {Boolean} 是否显示当前页码和总页码 default(true)
 	 *options.showJumpBtn {Boolean} 是否显示跳转具体页面的按钮 default(false)
 	 *options.pageBtnsNum {Int} 显示页码按钮的数量 default(7)
@@ -35,14 +37,15 @@
 		}
 		this.ele = $(ele);
 
-		this.render();
-		this.listen();
+		this._render();
+		this._bindListener();
 	}
 
 	Page.defaultOptions = {
 		pageTot: 0,
 		curPage: 0,
 		pageListener: null,
+		onJump: null,
 		showPageDetail: true,
 		showJumpBtn: false,
 		pageBtnsNum: 7,
@@ -56,7 +59,7 @@
 	}
 
 	Page.prototype = {
-		render : function(){
+		_render : function(){
 			var pageTot = this.options.pageTot,
 				curPage = this.options.curPage,
 				html = '';
@@ -87,7 +90,7 @@
 		},
 		_getJumpBtnHtml: function(){
 			return this.options.showJumpBtn
-				? "<div style='display:inline-block;margin-left:10px;' class='page-jump-btn'>第<input id='pageInput' style='width:36px;'>页<button class='btn btn-default btn-sm'>"+this.options.alias.jumpBtn+"</button></div>"
+				? "<div style='display:inline-block;margin-left:10px;' class='page-jump-btn'>第<input id='pageInput' class='form-control' style='width:36px;display:inline-block;padding:0;'>页<button class='btn btn-default'>"+this.options.alias.jumpBtn+"</button></div>"
 				: "";
 		},
 
@@ -160,8 +163,9 @@
 			return "<li class='disabled'><span>...</span></li>";
 		},
 
-		listen : function(){
+		_listenPageChange: function(){
 			var self = this;
+
 			this.ele.on("click","li",function(e){
 				var $this = $(this),
 					page = '';
@@ -171,20 +175,45 @@
 				page = $this.data("page");
 				self.go(page);
 			});
+		},
+
+		_listenJumpBtn: function(){
+			var self = this,
+				options = self.options;
+
+			if(!options.showJumpBtn){
+				return;
+			}
 			this.ele.on("click","button",function(e){
-				var pageInput = parseInt($("#pageInput").val());
-				if(!pageInput || pageInput < 1 || pageInput > self.options.pageTot){
-					console.info('illegal page');
-					return;
+				var pageInput = $("#pageInput").val(),
+					pageInputNum = parseInt(pageInput),
+					onJump = options.onJump,
+					isGoJump = true;
+
+				if(typeof onJump === "function"){
+					isGoJump = onJump.call(self,pageInput);
 				}
-				self.go(pageInput); 
+
+				if(isGoJump !== false){
+					if(!pageInputNum || pageInputNum < 1 || pageInputNum > self.options.pageTot){
+						console.info("illegal page");
+						return;
+					}
+					self.go(pageInputNum); 
+				}
 			})
+		},
+
+		_bindListener: function(){
+			this._listenPageChange();
+			this._listenJumpBtn();
 		},
 
 		go : function(page){
 			var options = this.options,
 				curPage = options.curPage,
 				pageTot = options.pageTot;
+
 			if(page == "first"){
 				options.curPage = 1;
 			}else if(page == "prev"){
@@ -210,7 +239,7 @@
 				options.curPage = page;
 			}
 
-			this.render();
+			this._render();
 
 			if(options.pageListener){
 				options.pageListener.call(this,options.curPage);
@@ -233,7 +262,7 @@
 				return;
 			}
 			options.curPage = page;
-			this.render();
+			this._render();
 		},
 
 		setPageTot : function(pageTot){
@@ -244,7 +273,7 @@
 				return;
 			}
 			options.pageTot = pageTot;
-			this.render();
+			this._render();
 		},
 
 		setPage : function(curPage,pageTot){
@@ -257,7 +286,7 @@
 			}
 			options.curPage = curPage;
 			options.pageTot = pageTot;
-			this.render();
+			this._render();
 		},
 
 		destroy : function(){
